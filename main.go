@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"go-restapi-jwt/controllers"
+	"go-restapi-jwt/middlewares"
 	"go-restapi-jwt/models"
 )
 
@@ -16,6 +17,10 @@ func main() {
 
 	public.POST("/register", controllers.Register)
 	public.POST("/login", controllers.Login)
+
+	protected := router.Group("/api/v1/admin")
+	protected.Use(middlewares.JwtAuthMiddleware())
+	protected.GET("/user", controllers.CurrentUser)
 
 	router.Run(":8080")
 

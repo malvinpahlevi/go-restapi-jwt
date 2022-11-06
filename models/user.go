@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"go-restapi-jwt/utils/token"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -65,4 +66,20 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	u.Username = html.EscapeString(strings.TrimSpace(u.Username))
 
 	return
+}
+
+func GetUserById(uid uint) (User, error) {
+
+	var user User
+	if err := DB.First(&user, uid).Error; err != nil {
+		return user, errors.New("User not found!")
+	}
+
+	user.PrepareGive()
+
+	return user, nil
+}
+
+func (u *User) PrepareGive() {
+	u.Password = ""
 }
