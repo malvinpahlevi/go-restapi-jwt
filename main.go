@@ -15,6 +15,7 @@ func main() {
 	public := router.Group("/api/v1")
 
 	public.POST("/register", controllers.Register)
+	public.POST("/login", controllers.Login)
 
 	router.Run(":8080")
 
