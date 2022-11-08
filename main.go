@@ -19,7 +19,7 @@ func main() {
 	public.POST("/login", controllers.Login)
 
 	protected := router.Group("/api/v1/admin")
-	protected.Use(middlewares.JwtAuthMiddleware())
+	protected.Use(middlewares.JwtAuthMiddleware(), middlewares.CORSMiddleware())
 	protected.GET("/user", controllers.CurrentUser)
 
 	router.Run(":8080")

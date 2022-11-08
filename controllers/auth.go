@@ -10,6 +10,7 @@ import (
 type RegisterInput struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
+	Email    string `json:"email" binding:"required"`
 }
 
 func Register(c *gin.Context) {
@@ -27,6 +28,7 @@ func Register(c *gin.Context) {
 
 	u.Username = input.Username
 	u.Password = input.Password
+	u.Email = input.Email
 
 	_, err := u.SaveUser()
 	if err != nil {

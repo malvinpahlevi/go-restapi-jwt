@@ -2,29 +2,43 @@ package token
 
 import (
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func GenerateToken(userId uint) (string, error) {
+type Claims struct {
+	jwt.RegisteredClaims
+	ID       uint   `json:"ID"`
+	Username string `json:"username"`
+}
 
-	tokenLifespan, err := strconv.Atoi(os.Getenv("TOKEN_HOUR_LIFESPAN"))
+func GenerateToken(userId uint, username string) (string, error) {
 
+	expirationTime, err := strconv.Atoi(os.Getenv("TOKEN_HOUR_LIFESPAN"))
 	if err != nil {
 		return "", err
 	}
 
-	claims := jwt.MapClaims{}
-	claims["authorized"] = true
-	claims["user_id"] = userId
-	claims["exp"] = time.Now().Add(time.Hour * time.Duration(tokenLifespan)).Unix()
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	claims := Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    os.Getenv("APPLICATION_NAME"),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * time.Duration(expirationTime))),
+		},
+		ID:       userId,
+		Username: username,
+	}
 
-	return token.SignedString([]byte(os.Getenv("API_SECRET")))
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString([]byte(os.Getenv("API_SECRET")))
+	if err != nil {
+		return "", err
+	}
+
+	return signedToken, nil
 }
 
 func TokenValid(c *gin.Context) error {
@@ -51,7 +65,7 @@ func ExtractToken(c *gin.Context) string {
 	}
 
 	bearerToken := c.Request.Header.Get("Authorization")
-	if len(strings.Split(bearerToken, " ")) == 2 {
+	if len(strings.Split(bearerToken, " ")) == 2 && strings.Contains(bearerToken, "Bearer") {
 		return strings.Split(bearerToken, " ")[1]
 	}
 
@@ -70,9 +84,8 @@ func ExtractTokenID(c *gin.Context) (uint, error) {
 	if err != nil {
 		return 0, err
 	}
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if ok && token.Valid {
-		uid, err := strconv.ParseUint(fmt.Sprintf("%.0f", claims["user_id"]), 10, 32)
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		uid, err := strconv.ParseUint(fmt.Sprintf("%.0f", claims["ID"]), 10, 32)
 		if err != nil {
 			return 0, err
 		}

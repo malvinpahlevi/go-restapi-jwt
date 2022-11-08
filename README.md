@@ -64,4 +64,27 @@ Before, especially thanks for @seefnasrul for the tutorial on [Medium](https://s
   }
 ```
 
+- Available Using CORS 
+
+```bash
+  func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		// Change "*" to URL Destination, ex: "www.google.com"
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Credentials", "true")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Header("Access-Control-Allow-Methods", "POST,HEAD,PATCH, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		fmt.Print("Success Passed the CORS !")
+		c.Next()
+	}
+  }
+```
+
 
